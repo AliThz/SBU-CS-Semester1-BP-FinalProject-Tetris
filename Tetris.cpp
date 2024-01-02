@@ -1,5 +1,5 @@
 //hello
-//bye
+
 #include <iostream>
 #include <windows.h>
 #include <conio.h>
@@ -20,7 +20,6 @@ struct Shape
     string color;
     int box[4][4];
 };
-
 
 void getInfo(Game);
 void newGame();
