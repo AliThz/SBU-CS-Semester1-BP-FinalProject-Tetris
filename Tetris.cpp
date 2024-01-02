@@ -130,6 +130,11 @@ void newGame()
 
 void mainGame(Game game)
 {
+    displayBoard(game);
+
+
+
+
     displayBoard();
 }
 
@@ -138,8 +143,11 @@ void displayBoard(Game game)
     system("cls");
 
     cout << game.name << endl
-         << "Score :  " << game.score << RESET_COLOR;
+         << "Score :  " << game.score;
 
+    //displayBoardTable();
+
+    cout << endl;
     // displayBoardTable();
 
     cout << endl
