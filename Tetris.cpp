@@ -23,6 +23,9 @@ void newGame();
 int main()
 {
 
+
+
+
 }
 
 void getInfo(Game game)
