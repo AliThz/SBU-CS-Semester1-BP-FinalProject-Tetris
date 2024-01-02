@@ -24,6 +24,7 @@ void newGame();
 void ShowConsoleCursor(bool showFlag);
 void displayMenu();
 void exitBoard();
+void mainGame(Game);
 
 int main()
 {
@@ -98,6 +99,8 @@ void getInfo(Game game)
     cin >> game.boardWidth;
     cout << "\nEnter your desirable board length: ";
     cin >> game.boardLength;
+    cout << "\nEnter game mode:\n1.Normal\n2.Hard";
+    cin >> game.mode;
 }
 
 void newGame()
@@ -120,6 +123,18 @@ void newGame()
             board[i][j] = 0;
         }
     }
+
+    mainGame(game);
+
+}
+
+void mainGame(Game game)
+{
+    displayBoard();
+
+
+
+
 }
 
 void displayBoard()
