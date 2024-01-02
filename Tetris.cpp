@@ -1,8 +1,10 @@
+//hello
 #include <iostream>
 #include <windows.h>
 #include <conio.h>
 
 using namespace std;
+
 struct Game
 {
     string name;
@@ -59,7 +61,7 @@ void displayMenu()
     switch (command)
     {
     case '1':
-        cout << "New Game";
+        newGame();
         break;
     case '2':
         cout << "Leader Board";
@@ -99,6 +101,7 @@ void getInfo(Game game)
     cout << "\nEnter your desirable board length: ";
     cin >> game.boardLength;
 }
+
 void newGame()
 {
     Game game;
@@ -120,3 +123,5 @@ void newGame()
         }
     }
 }
+
+void displayBoard()
