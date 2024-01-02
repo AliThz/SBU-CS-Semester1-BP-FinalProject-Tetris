@@ -18,15 +18,6 @@ struct Shape
     int box[4][4];
 };
 
-#define KB_1 49
-#define KB_2 50
-#define KB_3 51
-#define KB_4 52
-#define KB_UpArrow 72
-#define KB_DownArrow 80
-#define KB_LeftArrow 75
-#define KB_RightArrow 77
-#define KB_ESC 27
 
 void getInfo(Game);
 void newGame();
@@ -63,20 +54,20 @@ void displayMenu()
          << "3 :  How to play" << endl
          << "4 :  Exit" << endl;
 
-    int command = getch();
+    char command = getch();
 
     switch (command)
     {
-    case KB_1:
+    case '1':
         cout << "New Game";
         break;
-    case KB_2:
+    case '2':
         cout << "Leader Board";
         break;
-    case KB_3:
+    case '3':
         cout << "How to Play";
         break;
-    case KB_4:
+    case '4':
         exitBoard();
         break;
 
