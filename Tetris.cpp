@@ -126,7 +126,6 @@ void newGame()
     }
 
     mainGame(game);
-
 }
 
 void mainGame(Game game)
@@ -136,6 +135,7 @@ void mainGame(Game game)
 
 
 
+    displayBoard();
 }
 
 void displayBoard(Game game)
@@ -148,4 +148,8 @@ void displayBoard(Game game)
     //displayBoardTable();
 
     cout << endl;
+    // displayBoardTable();
+
+    cout << endl
+         << "Press escape to pause the game";
 }
