@@ -126,16 +126,11 @@ void newGame()
     }
 
     mainGame(game);
-
 }
 
 void mainGame(Game game)
 {
     displayBoard();
-
-
-
-
 }
 
 void displayBoard(Game game)
@@ -145,8 +140,8 @@ void displayBoard(Game game)
     cout << game.name << endl
          << "Score :  " << game.score << RESET_COLOR;
 
-    displayBoardTable();
+    // displayBoardTable();
 
     cout << endl
-         << GREEN_COLOR << "Press escape to pause the game" << RESET_COLOR;
+         << "Press escape to pause the game";
 }
