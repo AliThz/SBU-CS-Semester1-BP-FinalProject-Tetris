@@ -1,6 +1,3 @@
-//hello
-// bye
-//ALi
 #include <iostream>
 #include <windows.h>
 #include <conio.h>
@@ -26,6 +23,7 @@ void getInfo(Game);
 void newGame();
 void ShowConsoleCursor(bool showFlag);
 void displayMenu();
+void displayBoard(Game);
 void exitBoard();
 
 int main()
@@ -125,7 +123,15 @@ void newGame()
     }
 }
 
-void displayBoard()
+void displayBoard(Game game)
 {
+    system("cls");
 
+    cout << game.name << endl
+         << "Score :  " << game.score << RESET_COLOR;
+
+    displayBoardTable();
+
+    cout << endl
+         << GREEN_COLOR << "Press escape to pause the game" << RESET_COLOR;
 }
