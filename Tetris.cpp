@@ -3,6 +3,20 @@
 #include <conio.h>
 
 using namespace std;
+struct Game
+{
+    string name;
+    int mode;
+    int boardLength;
+    int boardWidth;
+    int score;
+};
+
+struct Shape
+{
+    string color;
+    int box[4][4];
+};
 
 #define KB_1 49
 #define KB_2 50
@@ -14,6 +28,8 @@ using namespace std;
 #define KB_RightArrow 77
 #define KB_ESC 27
 
+void getInfo(Game);
+void newGame();
 void ShowConsoleCursor(bool showFlag);
 void displayMenu();
 void exitBoard();
@@ -80,4 +96,36 @@ void exitBoard()
     system("cls");
     cout << "Thanks for playing!";
     exit(0);
+}
+
+void getInfo(Game game)
+{
+
+    cout << "Please enter your name: ";
+    cin >> game.name;
+    cout << "\nEnter your desirable board width: ";
+    cin >> game.boardWidth;
+    cout << "\nEnter your desirable board length: ";
+    cin >> game.boardLength;
+}
+void newGame()
+{
+    Game game;
+    getInfo(game);
+
+    // allocate board memory
+    int **board = new int *[game.boardLength];
+    for (int i = 0; i < game.boardWidth; i++)
+    {
+        int *board = new int[game.boardWidth];
+    }
+
+    // initiate primary board state
+    for (int i = 0; i < game.boardLength; i++)
+    {
+        for (int j = 0; j < game.boardWidth; i++)
+        {
+            board[i][j] = 0;
+        }
+    }
 }
