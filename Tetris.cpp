@@ -131,7 +131,7 @@ void newGame()
 
 void mainGame(Game game)
 {
-    displayBoard();
+    displayBoard(game);
 
 
 
@@ -143,10 +143,9 @@ void displayBoard(Game game)
     system("cls");
 
     cout << game.name << endl
-         << "Score :  " << game.score << RESET_COLOR;
+         << "Score :  " << game.score;
 
-    displayBoardTable();
+    //displayBoardTable();
 
-    cout << endl
-         << GREEN_COLOR << "Press escape to pause the game" << RESET_COLOR;
+    cout << endl;
 }
