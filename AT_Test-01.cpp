@@ -33,13 +33,13 @@ int main()
         cout << endl;
     }
 
-    int length = 8,
-        width = 13;
+    int length = 3,
+        width = 5;
 
     // for (int i = 1; i < (width + 2); i++) // Remove First Line
     for (int i = 0; i < (width + 2); i++)
     {
-        for (int j = 0; j < (length * 2); j++)
+        for (int j = 0; j < (length * 2) + 2; j++)
         {
             // First Tile
             if (i == 0)
@@ -49,7 +49,7 @@ int main()
                     cout << "\u250F";
                     continue;
                 }
-                else if (j == (length * 2) - 1)
+                else if (j == (length * 2) + 2 - 1)
                 {
                     cout << "\u2513";
                     continue;
@@ -67,7 +67,7 @@ int main()
                     cout << "\u2517";
                     continue;
                 }
-                else if (j == (length * 2) - 1)
+                else if (j == (length * 2) + 2 - 1)
                 {
                     cout << "\u251B";
                     continue;
@@ -82,10 +82,13 @@ int main()
             {
                 if (j == 0)
                     cout << "\u2503";
-                else if (j == (length * 2) - 1)
+                else if (j == (length * 2) + 2 - 1)
                     cout << "\u2503";
                 else
-                    cout << "\u2588";
+                {
+                    // cout << "\u2588";
+                    cout << j;
+                }
             }
         }
         cout << endl;
