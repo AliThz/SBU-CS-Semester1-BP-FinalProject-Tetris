@@ -244,8 +244,8 @@ void displayBoard(Game game)
 
 int generateRandomNumber(int n)
 {
-    int random = rand() % n;
-    return random + 1;
+    int random = rand() % n + 1;
+    return random;
 }
 
 Shape generateShape1()
@@ -268,7 +268,7 @@ Shape generateShape1()
             shape.block[i][j] = 0;
 
     for (int j = 0; j < shape.size; j++)
-        shape.block[3][j] = 1;
+        shape.block[0][j] = 1;
 
     return shape;
 }
