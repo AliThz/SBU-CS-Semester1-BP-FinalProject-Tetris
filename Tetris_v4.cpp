@@ -226,7 +226,7 @@ void displayBoardTable(Game game)
                     cout << "\u2503";
                 else
                 {
-
+                    
                     cout << game.board[i - 1][(j - 1) / 2];
                 }
             }
