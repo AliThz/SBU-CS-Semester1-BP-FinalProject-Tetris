@@ -3,6 +3,7 @@
 #include <conio.h>
 #include <stdlib.h>
 #include <cstdlib>
+#include <ctime>
 
 using namespace std;
 
@@ -69,6 +70,7 @@ void generateShape(Game);
 
 int main()
 {
+    srand(static_cast<unsigned int>(time(nullptr)));
     ShowConsoleCursor(false);
     displayMenu();
 
@@ -227,7 +229,12 @@ void displayBoardTable(Game game)
                 else
                 {
 
-                    cout << game.board[i - 1][(j - 1) / 2];
+                    if (game.board[i-1][(j-1)/2] == 1)
+                    {
+                        cout << "\u2588";
+                    }
+                    else 
+                        cout << " ";
                 }
             }
         }
