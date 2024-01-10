@@ -319,7 +319,7 @@ void playGame(Game game, Game temp)
                 else
                     break;
             }
-            
+
             else if (command == KB_LeftArrow)
             {
                 if (checkLeft(temp, game.upcomingShapes[0]))
@@ -371,6 +371,7 @@ void playGame(Game game, Game temp)
             {
                 system("cls");
                 cout << "Pause Menu";
+                // flag = exit sequence
             }
             else
             {
