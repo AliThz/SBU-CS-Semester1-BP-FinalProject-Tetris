@@ -66,8 +66,9 @@ struct Shape
 };
 
 /*MENU*/
-void displayMenu();     // displays the menu
-void getInfo(Game &);   // gets data required for running a saving the game from the player
+void displayMenu(); // displays the menu
+void getCustomInfo(Game &); // sets data required for running the game quickly
+void setQuickInfo(Game &); // gets data required for running a saving the game from the player  
 void generateNewGame(); // calls "getInfo" and creats a new board and sends data to "playGame"
 void exitGame();        // closes the game permanently
 
@@ -84,9 +85,9 @@ void deallocate(Game);
 void deallocate(Shape);
 
 /*CONTROLS*/
-bool checkDown(Game, Shape); // to check down-move possibility
-bool checkLeft(Game, Shape); // to check lefr-move possibility
-bool checkRight(Game, Shape); // to check right-move possibility
+bool checkDown(Game, Shape);     // to check down-move possibility
+bool checkLeft(Game, Shape);     // to check lefr-move possibility
+bool checkRight(Game, Shape);    // to check right-move possibility
 bool checkRotation(Game, Shape); // to check rotation possibility
 void rotateShapeClockwise(Shape);
 void rotateShapeCounterClockwise(Shape);
@@ -105,7 +106,6 @@ Shape generateShape7();        // shape T
 /*TERMINAL*/
 void ShowConsoleCursor(bool); // makes the cursor not show in terminal
 
-
 int main()
 {
     // PlaySound(TEXT("Tetris.wav"), NULL, SND_FILENAME| SND_ASYNC);
@@ -120,7 +120,6 @@ void displayMenu()
     ShowConsoleCursor(false);
 
     cout << "Tetris" << endl
-
          << "1 :  New Game" << endl
          << "2 :  Leaderboard" << endl
          << "3 :  How to play" << endl
@@ -154,23 +153,37 @@ void displayMenu()
     }
 }
 
-void getInfo(Game &game)
+void setQuickInfo(Game &game)
 {
-    cout << "Please enter your name: ";
-    cin >> game.name;
+    game.boardWidth = 10;
+    game.boardLength = 20;
+}
+
+void getCustomInfo(Game &game)
+{
     cout << "\nEnter your desirable board width: ";
     cin >> game.boardWidth;
     cout << "\nEnter your desirable board length: ";
     cin >> game.boardLength;
-    cout << "\nEnter game mode:\n1.Normal\n2.Hard\n";
-    cin >> game.mode;
 }
 
 void generateNewGame()
 {
     system("cls");
     Game game;
-    getInfo(game);
+
+    cout << "New Game\n\n1 :  Quick Game\n2 :  Custom Game";
+    char command = getch();
+    system("cls");
+    cout << "Please enter your name: ";
+    cin >> game.name;
+    cout << "\nEnter game mode:\n1.Normal\n2.Hard\n";
+    cin >> game.mode;
+
+    if (command == '1')
+        setQuickInfo(game);
+    else if (command == '2')
+        getCustomInfo(game);
 
     // allocate board memory
     game.board = new Element *[game.boardLength];
@@ -288,7 +301,6 @@ void playGame(Game game)
                 {
                     rotateShapeClockwise(upcomingShapes[0]);
                 }
-
                 else
                     continue;
             }
@@ -396,9 +408,9 @@ void displayBoardTable(Game game)
                 {
                     int block = game.board[i - 1][j - 1].number;
                     if (block != 0)
-                        cout << chooseColor(block) << " " << game.board[i-1][j-1].isMoveable << RESET_COLOR;
+                        cout << chooseColor(block) << " " << game.board[i - 1][j - 1].isMoveable << RESET_COLOR;
                     else
-                        cout << " " << game.board[i-1][j-1].isMoveable;
+                        cout << " " << game.board[i - 1][j - 1].isMoveable;
                 }
             }
         }
@@ -502,7 +514,7 @@ void deallocate(Game game)
 }
 
 void deallocate(Shape shape)
-{   
+{
     for (int i = 0; i < shape.size; i++)
     {
         delete[] shape.block[i];
