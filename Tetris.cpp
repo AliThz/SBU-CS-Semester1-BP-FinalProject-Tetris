@@ -77,16 +77,16 @@ void exitGame();            // closes the game permanently
 /*GAMEPLAY*/
 void playGame(Game); // starts the main game sequence (the control panel of the game)
 void makeMove(Game &);
-void moveLeft(Game &, Shape &);
-void moveRight(Game &, Shape &);
-bool moveDown(Game &, Shape &);
+void moveLeft(Game &);
+void moveRight(Game &);
+bool moveDown(Game &);
 void displayUpcomingShapes(Shape[]); // Displays upcoming shapes
 void displayBoardTable(Game);        // prints out the board table
 string chooseColor(int);             // determines the color of an object
-void insertShape(Game, Shape);       // inserts the shape into the board
-void removeShape(Game, Shape);       // removes shape from previous location
-void copyGameToTemp(Game, Game);     // copies game board into temp board
-void copyTempToBoard(Game);          // copies temp board into game board
+void insertShape(Game);              // inserts the shape into the board
+void removeShape(Game);              // removes shape from previous location
+
+void fixBlocks(Game); // copies game board into game board
 void deallocate(Game);
 void deallocate(Shape);
 void popRow(Game, int);
@@ -94,10 +94,10 @@ void popRow(Game, int);
 /*CONTROLS*/
 void checkIfRowIsFull(Game);
 bool checkIfLost(Game);
-bool checkDown(Game, Shape);     // to check down-move possibility
-bool checkLeft(Game, Shape);     // to check lefr-move possibility
-bool checkRight(Game, Shape);    // to check right-move possibility
-bool checkRotation(Game, Shape); // to check rotation possibility
+bool checkDown(Game);     // to check down-move possibility
+bool checkLeft(Game);     // to check lefr-move possibility
+bool checkRight(Game);    // to check right-move possibility
+bool checkRotation(Game); // to check rotation possibility
 void rotateShapeClockwise(Shape);
 void rotateShapeCounterClockwise(Shape);
 
@@ -282,12 +282,11 @@ void playGame(Game game)
         game.upcomingShapes[3].positionX = 0;
         game.upcomingShapes[3].positionY = (game.boardWidth - game.upcomingShapes[3].size) / 2;
 
-        // copyGameToTemp(game, temp); // initialize temp board equal to main game board
-        insertShape(game, game.upcomingShapes[0]);
+        insertShape(game);
 
         makeMove(game);
 
-        copyTempToBoard(game); // complete the changes on the main board
+        fixBlocks(game);
 
         checkIfRowIsFull(game);
 
@@ -318,21 +317,21 @@ void makeMove(Game &game)
         switch (command)
         {
         case KB_SPACE:
-            flag = moveDown(game, game.upcomingShapes[0]);
+            flag = moveDown(game);
 
             break;
         case KB_LeftArrow:
-            moveLeft(game, game.upcomingShapes[0]);
+            moveLeft(game);
             break;
         case KB_RightArrow:
-            moveRight(game, game.upcomingShapes[0]);
+            moveRight(game);
             break;
         case KB_UpArrow:
-            if (checkRotation(game, game.upcomingShapes[0]))
+            if (checkRotation(game))
                 rotateShapeClockwise(game.upcomingShapes[0]);
             break;
         case KB_DownArrow:
-            if (checkRotation(game, game.upcomingShapes[0]))
+            if (checkRotation(game))
                 rotateShapeCounterClockwise(game.upcomingShapes[0]);
             break;
         case KB_ESC:
@@ -348,34 +347,34 @@ void makeMove(Game &game)
     }
 }
 
-void moveLeft(Game &temp, Shape &shape)
+void moveLeft(Game &game)
 {
-    if (checkLeft(temp, shape))
+    if (checkLeft(game))
     {
-        removeShape(temp, shape);
-        shape.positionY--;
-        insertShape(temp, shape);
+        removeShape(game);
+        game.upcomingShapes[0].positionY--;
+        insertShape(game);
     }
 }
 
-void moveRight(Game &temp, Shape &shape)
+void moveRight(Game &game)
 {
-    if (checkRight(temp, shape))
+    if (checkRight(game))
     {
-        removeShape(temp, shape);
-        shape.positionY++;
-        insertShape(temp, shape);
+        removeShape(game);
+        game.upcomingShapes[0].positionY++;
+        insertShape(game);
     }
 }
 
 // remove bool
-bool moveDown(Game &temp, Shape &shape)
+bool moveDown(Game &game)
 {
-    if (checkDown(temp, shape))
+    if (checkDown(game))
     {
-        removeShape(temp, shape);
-        shape.positionX++;
-        insertShape(temp, shape);
+        removeShape(game);
+        game.upcomingShapes[0].positionX++;
+        insertShape(game);
         return true;
     }
 
@@ -505,8 +504,9 @@ string chooseColor(int shapeNumber)
     }
 }
 
-void insertShape(Game game, Shape shape)
+void insertShape(Game game)
 {
+    Shape shape = game.upcomingShapes[0];
     int shapeRow = 0;
     for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
     {
@@ -523,8 +523,9 @@ void insertShape(Game game, Shape shape)
     }
 }
 
-void removeShape(Game game, Shape shape)
+void removeShape(Game game)
 {
+    Shape shape = game.upcomingShapes[0];
     for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
     {
         for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
@@ -535,19 +536,7 @@ void removeShape(Game game, Shape shape)
     }
 }
 
-void copyGameToTemp(Game game, Game temp)
-{
-    for (int i = 0; i < temp.boardLength; i++)
-    {
-        for (int j = 0; j < temp.boardWidth; j++)
-        {
-            temp.board[i][j].number = game.board[i][j].number;
-            temp.board[i][j].isMoveable = game.board[i][j].isMoveable;
-        }
-    }
-}
-
-void copyTempToBoard(Game game)
+void fixBlocks(Game game)
 {
     for (int i = 0; i < game.boardLength; i++)
     {
@@ -628,8 +617,9 @@ bool checkIfLost(Game game)
     return false;
 }
 
-bool checkDown(Game game, Shape shape)
+bool checkDown(Game game)
 {
+    Shape shape = game.upcomingShapes[0];
     for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
     {
         for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
@@ -644,8 +634,10 @@ bool checkDown(Game game, Shape shape)
     return true;
 }
 
-bool checkLeft(Game game, Shape shape)
+bool checkLeft(Game game)
 {
+    Shape shape = game.upcomingShapes[0];
+
     for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
     {
         for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
@@ -660,8 +652,10 @@ bool checkLeft(Game game, Shape shape)
     return true;
 }
 
-bool checkRight(Game game, Shape shape)
+bool checkRight(Game game)
 {
+    Shape shape = game.upcomingShapes[0];
+
     for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
     {
         for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
@@ -676,8 +670,10 @@ bool checkRight(Game game, Shape shape)
     return true;
 }
 
-bool checkRotation(Game game, Shape shape)
+bool checkRotation(Game game)
 {
+    Shape shape = game.upcomingShapes[0];
+
     for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
     {
         for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
