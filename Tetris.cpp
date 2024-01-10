@@ -46,6 +46,14 @@ struct Element
     bool isMoveable = true;
 };
 
+struct Shape
+{
+    int size;
+    int **block;
+    int positionX;
+    int positionY;
+};
+
 struct Game
 {
     string playerName;
@@ -55,14 +63,6 @@ struct Game
     int score;
     Shape upcomingShapes[4];
     Element **board;
-};
-
-struct Shape
-{
-    int size;
-    int **block;
-    int positionX;
-    int positionY;
 };
 
 /*MENU*/
@@ -277,6 +277,7 @@ void exitGame()
 /*GAMEPLAY*/
 void playGame(Game game, Game temp)
 {
+
     int command = 0;
 
     while (true)
@@ -286,7 +287,7 @@ void playGame(Game game, Game temp)
 
         game.upcomingShapes[3] = generateShape();
         game.upcomingShapes[3].positionX = 0;
-        game.upcomingShapes[3].positionY = (temp.boardWidth - upcomingShapes[3].size) / 2;
+        game.upcomingShapes[3].positionY = (temp.boardWidth - game.upcomingShapes[3].size) / 2;
 
         copyGameToTemp(game, temp); // initialize temp board equal to main game board
         insertShape(temp, game.upcomingShapes[0]);
@@ -313,12 +314,10 @@ void playGame(Game game, Game temp)
                     removeShape(temp, game.upcomingShapes[0]);
                     game.upcomingShapes[0].positionX++;
                     insertShape(temp, game.upcomingShapes[0]);
-                    playGame(game, temp);
                 }
 
                 else
                     break;
-                ;
             }
 
             if (command == KB_LeftArrow)
@@ -331,7 +330,7 @@ void playGame(Game game, Game temp)
                 }
 
                 else
-                    playGame(game, temp);
+                    continue;
             }
 
             else if (command == KB_RightArrow)
@@ -344,7 +343,7 @@ void playGame(Game game, Game temp)
                 }
 
                 else
-                    playGame(game, temp);
+                    continue;
             }
 
             else if (command == KB_UpArrow)
@@ -354,7 +353,7 @@ void playGame(Game game, Game temp)
                     rotateShapeClockwise(game.upcomingShapes[0]);
                 }
                 else
-                    playGame(game, temp);
+                    continue;
             }
 
             else if (command == KB_DownArrow)
@@ -365,7 +364,7 @@ void playGame(Game game, Game temp)
                 }
 
                 else
-                    playGame(game, temp);
+                    continue;
             }
 
             else if (command == KB_ESC)
@@ -378,7 +377,7 @@ void playGame(Game game, Game temp)
             {
                 cout << RED_COLOR << "Invalid move!" << RESET_COLOR;
                 Sleep(500);
-                playGame(game, temp);
+                continue;
             }
         }
 
@@ -393,6 +392,7 @@ void playGame(Game game, Game temp)
 
 void displayUpcomingShapes(Shape shapes[])
 {
+    // system("cls");
     setCursor();
     for (int i = 0; i < 4; i++)
     {
