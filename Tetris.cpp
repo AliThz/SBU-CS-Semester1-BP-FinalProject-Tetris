@@ -273,8 +273,6 @@ void exitGame()
 /*GAMEPLAY*/
 void playGame(Game game)
 {
-    // while (true)
-    // {
     for (int i = 0; i < 3; i++)
         game.upcomingShapes[i] = game.upcomingShapes[i + 1];
 
@@ -294,12 +292,12 @@ void playGame(Game game)
         cout << "Game Over";
     else
         playGame(game);
-    // }
 }
 
 void makeMove(Game &game)
 {
     int command = 0;
+
     bool flag = true;
     while (flag) // start getting move commands
     {
@@ -314,13 +312,17 @@ void makeMove(Game &game)
                 command = getch();
         }
         else
-            command = KB_SPACE;
+        {
+            flag = moveDown(game);
+            makeMove(game);
+        }
 
         switch (command)
         {
         case KB_SPACE:
             flag = moveDown(game);
-
+            flag = moveDown(game);
+            flag = moveDown(game);
             break;
         case KB_LeftArrow:
             moveLeft(game);
@@ -340,7 +342,6 @@ void makeMove(Game &game)
             system("cls");
             cout << "Pause Menu";
             break;
-
         default:
             cout << RED_COLOR << "Invalid move!" << RESET_COLOR;
             Sleep(5000);
