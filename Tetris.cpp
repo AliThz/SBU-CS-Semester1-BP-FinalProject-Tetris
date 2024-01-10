@@ -342,6 +342,7 @@ void makeMove(Game &game)
         default:
             cout << RED_COLOR << "Invalid move!" << RESET_COLOR;
             Sleep(5000);
+            makeMove(game);
             break;
         }
     }
