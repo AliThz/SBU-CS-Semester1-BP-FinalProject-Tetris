@@ -148,7 +148,7 @@ void displayMenu()
 
     default:
         cout << RED_COLOR << "Invalid command!" << endl
-             << "Please enter one of the commands above ...";
+             << "Please enter one of the commands above ..." << RESET_COLOR;
 
         Sleep(1500);
 
@@ -319,8 +319,7 @@ void playGame(Game game, Game temp)
                 else
                     break;
             }
-
-            if (command == KB_LeftArrow)
+            else if (command == KB_LeftArrow)
             {
                 if (checkLeft(temp, game.upcomingShapes[0]))
                 {
@@ -372,11 +371,11 @@ void playGame(Game game, Game temp)
                 system("cls");
                 cout << "Pause Menu";
             }
-
             else
             {
+                cout << "********************* :  " << command;
                 cout << RED_COLOR << "Invalid move!" << RESET_COLOR;
-                Sleep(500);
+                Sleep(5000);
                 continue;
             }
         }
@@ -392,8 +391,8 @@ void playGame(Game game, Game temp)
 
 void displayUpcomingShapes(Shape shapes[])
 {
-    // system("cls");
-    setCursor();
+    system("cls");
+    // setCursor();
     for (int i = 0; i < 4; i++)
     {
         for (int k = 1; k < 4; k++)
