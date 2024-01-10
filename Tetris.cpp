@@ -273,26 +273,28 @@ void exitGame()
 /*GAMEPLAY*/
 void playGame(Game game)
 {
-    while (true)
-    {
-        for (int i = 0; i < 3; i++)
-            game.upcomingShapes[i] = game.upcomingShapes[i + 1];
+    // while (true)
+    // {
+    for (int i = 0; i < 3; i++)
+        game.upcomingShapes[i] = game.upcomingShapes[i + 1];
 
-        game.upcomingShapes[3] = generateShape();
-        game.upcomingShapes[3].positionX = 0;
-        game.upcomingShapes[3].positionY = (game.boardWidth - game.upcomingShapes[3].size) / 2;
+    game.upcomingShapes[3] = generateShape();
+    game.upcomingShapes[3].positionX = 0;
+    game.upcomingShapes[3].positionY = (game.boardWidth - game.upcomingShapes[3].size) / 2;
 
-        insertShape(game);
+    insertShape(game);
 
-        makeMove(game);
+    makeMove(game);
 
-        fixBlocks(game);
+    fixBlocks(game);
 
-        checkIfRowIsFull(game);
+    checkIfRowIsFull(game);
 
-        if (checkIfLost(game))
-            break;
-    }
+    if (checkIfLost(game))
+        cout << "Game Over";
+    else
+        playGame(game);
+    // }
 }
 
 void makeMove(Game &game)
