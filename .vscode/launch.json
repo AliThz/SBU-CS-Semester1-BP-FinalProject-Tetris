@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "d:/SBU Projects/FinalProject/Tetris/FinalProject-Tetris/FinalProject-Tetris",
-      "program": "d:/SBU Projects/FinalProject/Tetris/FinalProject-Tetris/FinalProject-Tetris/build/Debug/outDebug",
+      "cwd": "d:/SBU Projects/FinalProject/Tetris/FinalProject-Tetris/FinalProject-Tetris/FinalProject-Tetris/FinalProject-Tetris",
+      "program": "d:/SBU Projects/FinalProject/Tetris/FinalProject-Tetris/FinalProject-Tetris/FinalProject-Tetris/FinalProject-Tetris/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
