@@ -314,7 +314,7 @@ void makeMove(Game &game)
         else
         {
             flag = moveDown(game);
-            makeMove(game);
+            continue;
         }
 
         switch (command)
