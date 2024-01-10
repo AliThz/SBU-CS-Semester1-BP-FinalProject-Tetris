@@ -53,6 +53,7 @@ struct Game
     int boardLength;
     int boardWidth;
     int score;
+    Shape upcomingShapes[4];
     Element **board;
 };
 
@@ -62,7 +63,6 @@ struct Shape
     int **block;
     int positionX;
     int positionY;
-    int rotation = 0; // needs further thinking
 };
 
 /*MENU*/
@@ -75,7 +75,7 @@ void generateNewGame();     // calls "getInfo" and creats a new board and sends 
 void exitGame();            // closes the game permanently
 
 /*GAMEPLAY*/
-void playGame(Game);                 // starts the main game sequence (the control panel of the game)
+void playGame(Game, Game);           // starts the main game sequence (the control panel of the game)
 void displayUpcomingShapes(Shape[]); // Displays upcoming shapes
 void displayBoardTable(Game);        // prints out the board table
 string chooseColor(int);             // determines the color of an object
@@ -247,8 +247,24 @@ void generateNewGame()
         for (int j = 0; j < game.boardWidth; j++)
             game.board[i][j].number = 0;
 
+    Game temp; // create temporary board to change shape status
+    temp.boardLength = game.boardLength;
+    temp.boardWidth = game.boardWidth;
+
+    // allocate board memory
+    temp.board = new Element *[temp.boardLength];
+    for (int i = 0; i < temp.boardLength; i++)
+        temp.board[i] = new Element[temp.boardWidth];
+
+    for (int i = 1; i < 4; i++)
+    {
+        game.upcomingShapes[i] = generateShape();
+        game.upcomingShapes[i].positionX = 0;
+        game.upcomingShapes[i].positionY = (temp.boardWidth - game.upcomingShapes[i].size) / 2;
+    }
+
     system("cls");
-    playGame(game);
+    playGame(game, temp);
 }
 
 void exitGame()
@@ -259,42 +275,25 @@ void exitGame()
 }
 
 /*GAMEPLAY*/
-void playGame(Game game)
+void playGame(Game game, Game temp)
 {
     int command = 0;
-
-    Game temp; // create temporary board to change shape status
-    temp.boardLength = game.boardLength;
-    temp.boardWidth = game.boardWidth;
-
-    // allocate board memory
-    temp.board = new Element *[temp.boardLength];
-    for (int i = 0; i < temp.boardLength; i++)
-        temp.board[i] = new Element[temp.boardWidth];
-
-    Shape upcomingShapes[4];
-    for (int i = 1; i < 4; i++)
-    {
-        upcomingShapes[i] = generateShape();
-        upcomingShapes[i].positionX = 0;
-        upcomingShapes[i].positionY = (temp.boardWidth - upcomingShapes[i].size) / 2;
-    }
 
     while (true)
     {
         for (int i = 0; i < 3; i++)
-            upcomingShapes[i] = upcomingShapes[i + 1];
+            game.upcomingShapes[i] = game.upcomingShapes[i + 1];
 
-        upcomingShapes[3] = generateShape();
-        upcomingShapes[3].positionX = 0;
-        upcomingShapes[3].positionY = (temp.boardWidth - upcomingShapes[3].size) / 2;
+        game.upcomingShapes[3] = generateShape();
+        game.upcomingShapes[3].positionX = 0;
+        game.upcomingShapes[3].positionY = (temp.boardWidth - upcomingShapes[3].size) / 2;
 
         copyGameToTemp(game, temp); // initialize temp board equal to main game board
-        insertShape(temp, upcomingShapes[0]);
+        insertShape(temp, game.upcomingShapes[0]);
 
         while (command != KB_ESC) // start getting move commands
         {
-            displayUpcomingShapes(upcomingShapes);
+            displayUpcomingShapes(game.upcomingShapes);
             displayBoardTable(temp);
 
             Sleep(300);
@@ -309,63 +308,64 @@ void playGame(Game game)
 
             if (command == KB_SPACE)
             {
-                if (checkDown(temp, upcomingShapes[0]))
+                if (checkDown(temp, game.upcomingShapes[0]))
                 {
-                    removeShape(temp, upcomingShapes[0]);
-                    upcomingShapes[0].positionX++;
-                    insertShape(temp, upcomingShapes[0]);
-                    continue;
+                    removeShape(temp, game.upcomingShapes[0]);
+                    game.upcomingShapes[0].positionX++;
+                    insertShape(temp, game.upcomingShapes[0]);
+                    playGame(game, temp);
                 }
 
                 else
                     break;
+                ;
             }
 
             if (command == KB_LeftArrow)
             {
-                if (checkLeft(temp, upcomingShapes[0]))
+                if (checkLeft(temp, game.upcomingShapes[0]))
                 {
-                    removeShape(temp, upcomingShapes[0]);
-                    upcomingShapes[0].positionY--;
-                    insertShape(temp, upcomingShapes[0]);
+                    removeShape(temp, game.upcomingShapes[0]);
+                    game.upcomingShapes[0].positionY--;
+                    insertShape(temp, game.upcomingShapes[0]);
                 }
 
                 else
-                    continue;
+                    playGame(game, temp);
             }
 
             else if (command == KB_RightArrow)
             {
-                if (checkRight(temp, upcomingShapes[0]))
+                if (checkRight(temp, game.upcomingShapes[0]))
                 {
-                    removeShape(temp, upcomingShapes[0]);
-                    upcomingShapes[0].positionY++;
-                    insertShape(temp, upcomingShapes[0]);
+                    removeShape(temp, game.upcomingShapes[0]);
+                    game.upcomingShapes[0].positionY++;
+                    insertShape(temp, game.upcomingShapes[0]);
                 }
 
                 else
-                    continue;
+                    playGame(game, temp);
             }
 
             else if (command == KB_UpArrow)
             {
-                if (checkRotation(temp, upcomingShapes[0]))
+                if (checkRotation(temp, game.upcomingShapes[0]))
                 {
-                    rotateShapeClockwise(upcomingShapes[0]);
+                    rotateShapeClockwise(game.upcomingShapes[0]);
                 }
                 else
-                    continue;
+                    playGame(game, temp);
             }
 
             else if (command == KB_DownArrow)
             {
-                if (checkRotation(temp, upcomingShapes[0]))
+                if (checkRotation(temp, game.upcomingShapes[0]))
                 {
-                    rotateShapeCounterClockwise(upcomingShapes[0]);
+                    rotateShapeCounterClockwise(game.upcomingShapes[0]);
                 }
 
                 else
-                    continue;
+                    playGame(game, temp);
             }
 
             else if (command == KB_ESC)
@@ -378,7 +378,7 @@ void playGame(Game game)
             {
                 cout << RED_COLOR << "Invalid move!" << RESET_COLOR;
                 Sleep(500);
-                continue;
+                playGame(game, temp);
             }
         }
 
