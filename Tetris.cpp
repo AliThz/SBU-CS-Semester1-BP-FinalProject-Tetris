@@ -79,6 +79,7 @@ void playGame(Game, Game); // starts the main game sequence (the control panel o
 void makeMove(Game &, Game &);
 void moveLeft(Game &, Shape &);
 void moveRight(Game &, Shape &);
+bool moveDown(Game &, Shape &);
 void displayUpcomingShapes(Shape[]); // Displays upcoming shapes
 void displayBoardTable(Game);        // prints out the board table
 string chooseColor(int);             // determines the color of an object
@@ -97,8 +98,8 @@ bool checkDown(Game, Shape);     // to check down-move possibility
 bool checkLeft(Game, Shape);     // to check lefr-move possibility
 bool checkRight(Game, Shape);    // to check right-move possibility
 bool checkRotation(Game, Shape); // to check rotation possibility
-void rotateShapeClockwise(Game, Game);
-void rotateShapeCounterClockwise(Game, Game);
+void rotateShapeClockwise(Shape);
+void rotateShapeCounterClockwise(Shape);
 
 /*SHAPES*/
 int generateRandomNumber(int); // generates a random shape number
@@ -117,6 +118,7 @@ void showConsoleCursor(bool); // makes the cursor not show in terminal
 
 int main()
 {
+    srand(static_cast<unsigned int>(time(nullptr)));
     // cout << "\e[8;30;50t";
     // PlaySound(TEXT("Tetris.wav"), NULL, SND_FILENAME| SND_ASYNC);
     displayMenu();
@@ -306,8 +308,8 @@ void playGame(Game game, Game temp)
 void makeMove(Game &game, Game &temp)
 {
     int command = 0;
-
-    while (command != KB_ESC) // start getting move commands
+    bool flag = true;
+    while (flag) // start getting move commands
     {
         displayUpcomingShapes(game.upcomingShapes);
         displayBoardTable(temp);
@@ -322,43 +324,35 @@ void makeMove(Game &game, Game &temp)
         else
             command = KB_SPACE;
 
-        if (command == KB_SPACE)
+        switch (command)
         {
-            if (checkDown(temp, game.upcomingShapes[0]))
-            {
-                removeShape(temp, game.upcomingShapes[0]);
-                game.upcomingShapes[0].positionX++;
-                insertShape(temp, game.upcomingShapes[0]);
-            }
+        case KB_SPACE:
+            flag = moveDown(temp, game.upcomingShapes[0]);
 
-            else
-                break;
-        }
-
-        else if (command == KB_LeftArrow)
+            break;
+        case KB_LeftArrow:
             moveLeft(temp, game.upcomingShapes[0]);
-
-        else if (command == KB_RightArrow)
+            break;
+        case KB_RightArrow:
             moveRight(temp, game.upcomingShapes[0]);
-
-        else if (command == KB_UpArrow)
-            rotateShapeClockwise(game, temp);
-
-        else if (command == KB_DownArrow)
-            rotateShapeCounterClockwise(game, temp);
-
-        else if (command == KB_ESC)
-        {
+            break;
+        case KB_UpArrow:
+            if (checkRotation(temp, game.upcomingShapes[0]))
+                rotateShapeClockwise(game.upcomingShapes[0]);
+            break;
+        case KB_DownArrow:
+            if (checkRotation(temp, game.upcomingShapes[0]))
+                rotateShapeCounterClockwise(game.upcomingShapes[0]);
+            break;
+        case KB_ESC:
             system("cls");
             cout << "Pause Menu";
-            // flag = exit sequence
-        }
-        else
-        {
-            cout << "********************* :  " << command;
+            break;
+
+        default:
             cout << RED_COLOR << "Invalid move!" << RESET_COLOR;
             Sleep(5000);
-            continue;
+            break;
         }
     }
 }
@@ -381,6 +375,20 @@ void moveRight(Game &temp, Shape &shape)
         shape.positionY++;
         insertShape(temp, shape);
     }
+}
+
+// remove bool
+bool moveDown(Game &temp, Shape &shape)
+{
+    if (checkDown(temp, shape))
+    {
+        removeShape(temp, shape);
+        shape.positionX++;
+        insertShape(temp, shape);
+        return true;
+    }
+
+    return false;
 }
 
 void displayUpcomingShapes(Shape shapes[])
@@ -694,50 +702,42 @@ bool checkRotation(Game game, Shape shape)
     return true;
 }
 
-void rotateShapeClockwise(Game game, Game temp)
+void rotateShapeClockwise(Shape shape)
 {
-    Shape shape = game.upcomingShapes[0];
 
-    if (checkRotation(temp, shape))
+    for (int i = 0; i < shape.size; i++)
     {
-        for (int i = 0; i < shape.size; i++)
+        for (int j = i + 1; j < shape.size; j++)
         {
-            for (int j = i + 1; j < shape.size; j++)
-            {
-                swap(shape.block[i][j], shape.block[j][i]);
-            }
+            swap(shape.block[i][j], shape.block[j][i]);
         }
+    }
 
-        for (int i = 0; i < shape.size; i++)
+    for (int i = 0; i < shape.size; i++)
+    {
+        for (int j = 0; j < shape.size / 2; j++)
         {
-            for (int j = 0; j < shape.size / 2; j++)
-            {
-                swap(shape.block[i][j], shape.block[i][shape.size - 1 - j]);
-            }
+            swap(shape.block[i][j], shape.block[i][shape.size - 1 - j]);
         }
     }
 }
 
-void rotateShapeCounterClockwise(Game game, Game temp)
+void rotateShapeCounterClockwise(Shape shape)
 {
-    Shape shape = game.upcomingShapes[0];
 
-    if (checkRotation(temp, shape))
+    for (int i = 0; i < shape.size; i++)
     {
-        for (int i = 0; i < shape.size; i++)
+        for (int j = i + 1; j < shape.size; j++)
         {
-            for (int j = i + 1; j < shape.size; j++)
-            {
-                swap(shape.block[i][j], shape.block[j][i]);
-            }
+            swap(shape.block[i][j], shape.block[j][i]);
         }
+    }
 
-        for (int j = 0; j < shape.size; j++)
+    for (int j = 0; j < shape.size; j++)
+    {
+        for (int i = 0; i < shape.size / 2; i++)
         {
-            for (int i = 0; i < shape.size / 2; i++)
-            {
-                swap(shape.block[i][j], shape.block[shape.size - 1 - i][j]);
-            }
+            swap(shape.block[i][j], shape.block[shape.size - 1 - i][j]);
         }
     }
 }
@@ -779,8 +779,8 @@ Shape generateShape()
         break;
     }
 
-    // for (int i = 1; i < generateRandomNumber(4); i++)
-    //     rotateShapeClockwise(shape);
+    for (int i = 1; i < generateRandomNumber(4); i++)
+        rotateShapeClockwise(shape);
 
     return shape;
 }
