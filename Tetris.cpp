@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
+#include <iomanip>
+#include <algorithm>
 
 using namespace std;
 
@@ -85,6 +88,11 @@ void removeShape(Game);              // removes shape from previous location
 void popRow(Game &, int);            // delete full row and count the score and shift upper rows down
 void fixBlocks(Game);                // copies game board into game board
 
+/*File*/
+void saveData(Game);
+void fetchData();
+int sortHelper(const Game &, const Game &);
+
 /*CONTROLS*/
 void moveLeft(Game &);                   // move the shape left
 void moveRight(Game &);                  // move the shape right
@@ -137,6 +145,14 @@ void displayMenu()
     showConsoleCursor(false);
 
     string title = "+-+ +-+ +-+ +-+ +-+ +-+\n|T| |E| |T| |R| |I| |S|\n+-+ +-+ +-+ +-+ +-+ +-+\n\n1 :  New Game\n2 :  Leaderboard\n3 :  How to play\n4 :  Exit\n\n";
+
+    // string title = "████████╗███████╗████████╗██████╗ ██╗███████╗\n
+    //                 ╚══██╔══╝██╔════╝╚══██╔══╝██╔══██╗██║██╔════╝\n
+    //                    ██║   █████╗     ██║   ██████╔╝██║███████╗\n
+    //                    ██║   ██╔══╝     ██║   ██╔══██╗██║╚════██║\n
+    //                    ██║   ███████╗   ██║   ██║  ██║██║███████║\n
+    //                    ╚═╝   ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝\n\n 1 : New Game\n2 : Leaderboard\n3 : How to play\n4 : Exit\n\n ";
+
     printCharacterByCharacter(title, 1, 50, 1000);
 
     char command = getch();
@@ -147,7 +163,7 @@ void displayMenu()
         generateNewGame();
         break;
     case '2':
-        cout << "Leader Board";
+        fetchData();
         break;
     case '3':
         displayHowToPlay();
@@ -269,7 +285,10 @@ void playGame(Game game)
     checkIfRowIsFull(game);
 
     if (checkIfLost(game))
+    {
         cout << "Game Over";
+        saveData(game);
+    }
     else
         playGame(game);
 }
@@ -489,12 +508,13 @@ void removeShape(Game game)
 void popRow(Game &game, int fullRow)
 {
     bool haveSameColor = true;
-    int lastColor = game.board[fullRow][0].number;
+    int lastColor = game.board[fullRow][3].number;
     for (int j = 3; j < game.boardWidth + 3; j++)
     {
         if (lastColor != game.board[fullRow][j].number)
             haveSameColor = false;
 
+        lastColor = game.board[fullRow][j].number;
         game.board[fullRow][j].number = 0;
         game.board[fullRow][j].isMoveable = true;
     }
@@ -525,6 +545,106 @@ void fixBlocks(Game game)
                 game.board[i][j].isMoveable = false;
         }
     }
+}
+
+/*File*/
+void saveData(Game game)
+{
+    ofstream file("LeaderBoard.txt", ios::app);
+    if (file.is_open())
+    {
+        file << game.playerName << " - " << game.score << " - " << game.boardLength << " - " << game.boardWidth << "\n";
+        file.close();
+    }
+    else
+    {
+        cerr << endl
+             << "Unable to open the file." << endl;
+    }
+}
+
+void fetchData()
+{
+    ifstream file("LeaderBoard.txt");
+    if (file.is_open())
+    {
+        string line, word;
+        int l = 0;
+        while (getline(file, line))
+            l++;
+
+        file.clear();
+        file.seekg(0);
+
+        Game gamesData[l];
+
+        int i = 0;
+        while (getline(file, line))
+        {
+            int j = 0;
+            while (file >> word)
+            {
+                if (word == "-")
+                    continue;
+
+                switch (j)
+                {
+                case 0:
+                    gamesData[i].playerName = word;
+                    break;
+                case 1:
+                    gamesData[i].score = stoi(word);
+                    break;
+                case 2:
+                    gamesData[i].boardLength = stoi(word);
+                    break;
+                case 3:
+                    gamesData[i].boardWidth = stoi(word);
+                    break;
+                }
+                if (j == 3)
+                    break;
+
+                j++;
+            }
+            i++;
+        }
+
+        Game *gamesDataLength = gamesData + sizeof(gamesData) / sizeof(gamesData[0]);
+        sort(gamesData, gamesDataLength, sortHelper);
+
+        cout << GREEN_COLOR
+             << setw(8) << left << "Rank" << setw(8)
+             << "  |  "
+             << setw(8) << left << "Name" << setw(8)
+             << "  |  "
+             << setw(8) << left << "Score" << setw(8)
+             << "  |  "
+             << setw(8) << left << "Board Size (L x W)" << setw(8) << RESET_COLOR << endl;
+
+        for (int i = 0; i < l - 1; i++)
+            cout << BLUE_COLOR
+                 << setw(8) << left << i + 1 << setw(8) << "  |  "
+                 << setw(8) << left << gamesData[i].playerName << setw(8) << "  |  "
+                 << setw(8) << left << gamesData[i].score << setw(8) << "  |  "
+                 << setw(8) << left << gamesData[i].boardLength << " x " << gamesData[i].boardLength << setw(8) << RESET_COLOR << endl;
+
+        file.close();
+    }
+    else
+    {
+        cout << endl
+             << RED_COLOR << "Unable to open the file." << RESET_COLOR << endl;
+    }
+}
+
+int sortHelper(const Game &game1, const Game &game2)
+{
+    int result = 0;
+    if (game2.score < game1.score)
+        result = 1;
+
+    return result;
 }
 
 /*CONTROLS*/
