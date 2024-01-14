@@ -7,6 +7,7 @@
 
 using namespace std;
 
+/*KEYS*/
 #define KB_UpArrow 72
 #define KB_DownArrow 80
 #define KB_LeftArrow 75
@@ -14,7 +15,7 @@ using namespace std;
 #define KB_ESC 27
 #define KB_SPACE 32
 
-// Console Text Color
+/*CONSOLE TEXT COLOR*/
 #define RESET_COLOR "\033[0m"
 #define BLACK_COLOR "\033[30m"
 #define RED_COLOR "\033[31m"
@@ -25,7 +26,7 @@ using namespace std;
 #define CYAN_COLOR "\033[36m"
 #define WHITE_COLOR "\033[37m"
 
-// Console Background Color
+/*CONSOLE BACKGROUND COLOR*/
 #define RESET_BGCOLOR "\033[0m"
 #define BLACK_BGCOLOR "\033[40m"
 #define RED_BGCOLOR "\033[41m"
@@ -36,7 +37,7 @@ using namespace std;
 #define CYAN_BGCOLOR "\033[46m"
 #define WHITE_BGCOLOR "\033[47m"
 
-// Console Text Style
+/*CONSOLE TEXT STYLE*/
 #define BOLDON_STYLE "\033[1m"
 #define BOLDOFF_STYLE "\033[22m"
 
@@ -46,6 +47,14 @@ struct Element
     bool isMoveable = true;
 };
 
+struct Shape
+{
+    int size;
+    int **block;
+    int positionX;
+    int positionY;
+};
+
 struct Game
 {
     string playerName;
@@ -53,49 +62,43 @@ struct Game
     int boardLength;
     int boardWidth;
     int score;
+    Shape upcomingShapes[4];
     Element **board;
 };
 
-struct Shape
-{
-    int size;
-    int **block;
-    int positionX;
-    int positionY;
-    int rotation = 0; // needs further thinking
-};
-
 /*MENU*/
-void displayMenu(); // displays the menu
-void printCharacterByCharacter(string, int, int, char);
-void displayHowToPlay();
-void getCustomInfo(Game &); // sets data required for running the game quickly
+void displayMenu();         // displays the menu
+void displayHowToPlay();    // show the game rules to the player
 void setQuickInfo(Game &);  // gets data required for running a saving the game from the player
+void getCustomInfo(Game &); // sets data required for running the game quickly
 void generateNewGame();     // calls "getInfo" and creats a new board and sends data to "playGame"
 void exitGame();            // closes the game permanently
 
 /*GAMEPLAY*/
 void playGame(Game);                 // starts the main game sequence (the control panel of the game)
+void makeMove(Game &);               // get a move command from the player
 void displayUpcomingShapes(Shape[]); // Displays upcoming shapes
 void displayBoardTable(Game);        // prints out the board table
-string chooseColor(int);             // determines the color of an object
-void insertShape(Game, Shape);       // inserts the shape into the board
-void removeShape(Game, Shape);       // removes shape from previous location
-void copyGameToTemp(Game, Game);     // copies game board into temp board
-void copyTempToBoard(Game, Game);    // copies temp board into game board
-void deallocate(Game);
-void deallocate(Shape);
-void popRow(Game, int);
+void displayPauseMenu(Game);         // display pause menu mid-game
+void insertShape(Game);              // inserts the shape into the board
+void removeShape(Game);              // removes shape from previous location
+void popRow(Game &, int);            // delete full row and count the score and shift upper rows down
+void fixBlocks(Game);                // copies game board into game board
 
 /*CONTROLS*/
-void checkIfRowIsFull(Game);
-bool checkIfLost(Game);
-bool checkDown(Game, Shape);     // to check down-move possibility
-bool checkLeft(Game, Shape);     // to check lefr-move possibility
-bool checkRight(Game, Shape);    // to check right-move possibility
-bool checkRotation(Game, Shape); // to check rotation possibility
-void rotateShapeClockwise(Shape);
-void rotateShapeCounterClockwise(Shape);
+void moveLeft(Game &);                   // move the shape left
+void moveRight(Game &);                  // move the shape right
+bool moveDown(Game &);                   // move the shape down
+void rotateShapeClockwise(Shape);        // rotates the shape clockwise
+void rotateShapeCounterClockwise(Shape); // rotates the shape counter-clockwise
+
+/*GAME RULES*/
+bool checkIfLost(Game);        // check if the game is over
+void checkIfRowIsFull(Game &); // check for popping a full row
+bool checkDown(Game);          // to check down-move possibility
+bool checkLeft(Game);          // to check lefr-move possibility
+bool checkRight(Game);         // to check right-move possibility
+bool checkRotation(Game);      // to check rotation possibility
 
 /*SHAPES*/
 int generateRandomNumber(int); // generates a random shape number
@@ -109,11 +112,18 @@ Shape generateShape6();        // shape Z
 Shape generateShape7();        // shape T
 
 /*TERMINAL*/
-void setCursor(int x = 0, int y = 0);
-void showConsoleCursor(bool); // makes the cursor not show in terminal
+string chooseColor(int);                               // determines the color of an object
+void setCursor(int x = 0, int y = 0);                  // control terminal cursor
+void showConsoleCursor(bool);                          // makes the cursor not show in terminal
+void printCharacterByCharacter(string, int, int, int); // print lines slowly
+
+/*SYSTEM*/
+void deallocate(Game);  // deallocates game board memory
+void deallocate(Shape); // deallocates shape memory
 
 int main()
 {
+    srand(static_cast<unsigned int>(time(nullptr)));
     // cout << "\e[8;30;50t";
     // PlaySound(TEXT("Tetris.wav"), NULL, SND_FILENAME| SND_ASYNC);
     displayMenu();
@@ -127,7 +137,7 @@ void displayMenu()
     showConsoleCursor(false);
 
     string title = "+-+ +-+ +-+ +-+ +-+ +-+\n|T| |E| |T| |R| |I| |S|\n+-+ +-+ +-+ +-+ +-+ +-+\n\n1 :  New Game\n2 :  Leaderboard\n3 :  How to play\n4 :  Exit\n\n";
-    printCharacterByCharacter(title, 1, 1000, '~');
+    printCharacterByCharacter(title, 1, 50, 1000);
 
     char command = getch();
 
@@ -148,7 +158,7 @@ void displayMenu()
 
     default:
         cout << RED_COLOR << "Invalid command!" << endl
-             << "Please enter one of the commands above ...";
+             << "Please enter one of the commands above ..." << RESET_COLOR;
 
         Sleep(1500);
 
@@ -157,45 +167,21 @@ void displayMenu()
     }
 }
 
-void printCharacterByCharacter(string message, int shortSleep, int longSleep, char longSleepDetector = '~')
-{
-    for (int i = 0; i < message.length(); i++)
-    {
-        if (kbhit())
-        {
-            getch();
-            for (int j = i; j < message.length(); j++)
-            {
-                if (message[j] != longSleepDetector)
-                    cout << message[j];
-                else
-                    continue;
-            }
-
-            break;
-        }
-
-        if (message[i] == longSleepDetector)
-            Sleep(longSleep);
-        else
-        {
-            cout << message[i];
-            Sleep(shortSleep);
-        }
-    }
-}
-
 void displayHowToPlay()
 {
     system("cls");
-    string explaination = "Hi\nI'm Ali Taherzadeh\n~and this is a test description";
-    printCharacterByCharacter(explaination, 5, 1000);
+    string explanation = "Hi Computer Scientists~\nYou know what it is ...~\n\n  just note a few things``\n    Move Left \u2B05\n    `Move Right \u27A1\n    `Clockwise Rotation \u2B06\n    `Counterclockwise Rotation \u2B07\n``    Move Down Quickly SPACE\n\n\n~ \033[1m\"only legends play tetris in terminal\" -QMars\033[22m\n\n\n\nPress any key to get back to the menu";
+    printCharacterByCharacter(explanation, 50, 500, 1000);
     getch();
+    displayMenu();
 }
 
 void setQuickInfo(Game &game)
 {
     system("cls");
+
+    cout << "Please enter your name: ";
+    cin >> game.playerName;
 
     game.boardWidth = 10;
     game.boardLength = 20;
@@ -205,7 +191,8 @@ void setQuickInfo(Game &game)
 void getCustomInfo(Game &game)
 {
     system("cls");
-
+    cout << "Please enter your name: ";
+    cin >> game.playerName;
     cout << "\nEnter your desirable board width: ";
     cin >> game.boardWidth;
     cout << "\nEnter your desirable board length: ";
@@ -219,6 +206,7 @@ void generateNewGame()
     system("cls");
 
     Game game;
+    game.score = 0; // renew game score
 
     cout << "New Game\n\n1 :  Quick Game\n2 :  Custom Game\n";
     char command = getch();
@@ -234,18 +222,22 @@ void generateNewGame()
         generateNewGame();
     }
 
-    cout << "\nPlease enter your name: ";
-    cin >> game.playerName;
-
     // allocate board memory
-    game.board = new Element *[game.boardLength];
-    for (int i = 0; i < game.boardLength; i++)
-        game.board[i] = new Element[game.boardWidth];
+    game.board = new Element *[game.boardLength + 3];
+    for (int i = 0; i < game.boardLength + 3; i++)
+        game.board[i] = new Element[game.boardWidth + 6];
 
     // initialize primary board state
-    for (int i = 0; i < game.boardLength; i++)
-        for (int j = 0; j < game.boardWidth; j++)
+    for (int i = 0; i < game.boardLength + 3; i++)
+        for (int j = 0; j < game.boardWidth + 6; j++)
             game.board[i][j].number = 0;
+
+    for (int i = 1; i < 4; i++)
+    {
+        game.upcomingShapes[i] = generateShape();
+        game.upcomingShapes[i].positionX = 0;
+        game.upcomingShapes[i].positionY = 3 + (game.boardWidth - game.upcomingShapes[i].size) / 2;
+    }
 
     system("cls");
     playGame(game);
@@ -261,138 +253,87 @@ void exitGame()
 /*GAMEPLAY*/
 void playGame(Game game)
 {
+    for (int i = 0; i < 3; i++)
+        game.upcomingShapes[i] = game.upcomingShapes[i + 1];
+
+    game.upcomingShapes[3] = generateShape();
+    game.upcomingShapes[3].positionX = 0;
+    game.upcomingShapes[3].positionY = 3 + (game.boardWidth - game.upcomingShapes[3].size) / 2;
+
+    insertShape(game);
+
+    makeMove(game);
+
+    fixBlocks(game);
+
+    checkIfRowIsFull(game);
+
+    if (checkIfLost(game))
+        cout << "Game Over";
+    else
+        playGame(game);
+}
+
+void makeMove(Game &game)
+{
     int command = 0;
 
-    Game temp; // create temporary board to change shape status
-    temp.boardLength = game.boardLength;
-    temp.boardWidth = game.boardWidth;
-
-    // allocate board memory
-    temp.board = new Element *[temp.boardLength];
-    for (int i = 0; i < temp.boardLength; i++)
-        temp.board[i] = new Element[temp.boardWidth];
-
-    Shape upcomingShapes[4];
-    for (int i = 1; i < 4; i++)
+    bool flag = true;
+    while (flag) // start getting move commands
     {
-        upcomingShapes[i] = generateShape();
-        upcomingShapes[i].positionX = 0;
-        upcomingShapes[i].positionY = (temp.boardWidth - upcomingShapes[i].size) / 2;
-    }
+        displayUpcomingShapes(game.upcomingShapes);
+        displayBoardTable(game);
 
-    while (true)
-    {
-        for (int i = 0; i < 3; i++)
-            upcomingShapes[i] = upcomingShapes[i + 1];
-
-        upcomingShapes[3] = generateShape();
-        upcomingShapes[3].positionX = 0;
-        upcomingShapes[3].positionY = (temp.boardWidth - upcomingShapes[3].size) / 2;
-
-        copyGameToTemp(game, temp); // initialize temp board equal to main game board
-        insertShape(temp, upcomingShapes[0]);
-
-        while (command != KB_ESC) // start getting move commands
+        Sleep(300);
+        if (kbhit())
         {
-            displayUpcomingShapes(upcomingShapes);
-            displayBoardTable(temp);
-
-            Sleep(300);
-            if (kbhit())
-            {
+            command = getch();
+            if (command == 224)
                 command = getch();
-                if (command == 224)
-                    command = getch();
-            }
-            else
-                command = KB_SPACE;
-
-            if (command == KB_SPACE)
-            {
-                if (checkDown(temp, upcomingShapes[0]))
-                {
-                    removeShape(temp, upcomingShapes[0]);
-                    upcomingShapes[0].positionX++;
-                    insertShape(temp, upcomingShapes[0]);
-                    continue;
-                }
-
-                else
-                    break;
-            }
-
-            if (command == KB_LeftArrow)
-            {
-                if (checkLeft(temp, upcomingShapes[0]))
-                {
-                    removeShape(temp, upcomingShapes[0]);
-                    upcomingShapes[0].positionY--;
-                    insertShape(temp, upcomingShapes[0]);
-                }
-
-                else
-                    continue;
-            }
-
-            else if (command == KB_RightArrow)
-            {
-                if (checkRight(temp, upcomingShapes[0]))
-                {
-                    removeShape(temp, upcomingShapes[0]);
-                    upcomingShapes[0].positionY++;
-                    insertShape(temp, upcomingShapes[0]);
-                }
-
-                else
-                    continue;
-            }
-
-            else if (command == KB_UpArrow)
-            {
-                if (checkRotation(temp, upcomingShapes[0]))
-                {
-                    rotateShapeClockwise(upcomingShapes[0]);
-                }
-                else
-                    continue;
-            }
-
-            else if (command == KB_DownArrow)
-            {
-                if (checkRotation(temp, upcomingShapes[0]))
-                {
-                    rotateShapeCounterClockwise(upcomingShapes[0]);
-                }
-
-                else
-                    continue;
-            }
-
-            else if (command == KB_ESC)
-            {
-                system("cls");
-                cout << "Pause Menu";
-            }
-
-            else
-            {
-                cout << RED_COLOR << "Invalid move!" << RESET_COLOR;
-                Sleep(500);
-                continue;
-            }
+        }
+        else
+        {
+            flag = moveDown(game);
+            continue;
         }
 
-        copyTempToBoard(game, temp); // complete the changes on the main board
-
-        checkIfRowIsFull(game);
-
-        if (checkIfLost(game))
+        switch (command)
+        {
+        case KB_SPACE:
+            flag = moveDown(game);
+            flag = moveDown(game);
+            flag = moveDown(game);
             break;
+        case KB_LeftArrow:
+            moveLeft(game);
+            break;
+        case KB_RightArrow:
+            moveRight(game);
+            break;
+        case KB_UpArrow:
+            if (checkRotation(game))
+                rotateShapeClockwise(game.upcomingShapes[0]);
+            break;
+        case KB_DownArrow:
+            if (checkRotation(game))
+                rotateShapeCounterClockwise(game.upcomingShapes[0]);
+            break;
+        case KB_ESC:
+            displayPauseMenu(game);
+            break;
+        default:
+            cout << RED_COLOR << "Invalid move!" << RESET_COLOR;
+            Sleep(1000);
+            system("cls");
+            makeMove(game);
+            break;
+        }
     }
 }
 
 void displayUpcomingShapes(Shape shapes[])
 {
+    // system("cls");
     setCursor();
     for (int i = 0; i < 4; i++)
     {
@@ -424,7 +365,7 @@ void displayBoardTable(Game game)
     // for (int i = 0; i < (game.boardLength + 2); i++)
     for (int i = 1; i < (game.boardLength + 2); i++) // First Line Removed
     {
-        for (int j = 0; j < (game.boardWidth + 2); j++)
+        for (int j = 3; j < (game.boardWidth + 5); j++)
         {
             // First Line
             if (i == 0)
@@ -447,12 +388,12 @@ void displayBoardTable(Game game)
             // Last Line
             else if (i == (game.boardLength + 2) - 1)
             {
-                if (j == 0)
+                if (j == 3)
                 {
                     cout << "\u2517";
                     continue;
                 }
-                else if (j == (game.boardWidth + 2) - 1)
+                else if (j == (game.boardWidth + 5) - 1)
                 {
                     cout << "\u251B";
                     continue;
@@ -465,9 +406,9 @@ void displayBoardTable(Game game)
             // Mid Lines
             else
             {
-                if (j == 0)
+                if (j == 3)
                     cout << "\u2503";
-                else if (j == (game.boardWidth + 2) - 1)
+                else if (j == (game.boardWidth + 5) - 1)
                     cout << "\u2503";
                 else
                 {
@@ -481,40 +422,41 @@ void displayBoardTable(Game game)
         }
         cout << endl;
     }
+
+    cout << "SCORE: " << game.score;
 }
 
-string chooseColor(int shapeNumber)
+void displayPauseMenu(Game game)
 {
-    switch (shapeNumber)
+    system("cls");
+    cout << "Game Paused\n\n1.Continue\n2.Save\n3.Quit";
+    char command = getch();
+
+    switch (command)
     {
-    case 1:
-        return CYAN_COLOR;
+    case '1':
+        system("cls");
         break;
-    case 2:
-        return YELLOW_COLOR;
+    case '2':
+        cout << "Save Game";
         break;
-    case 3:
-        return WHITE_COLOR;
+    case '3':
+        // writeGameData(game);
+        displayMenu();
         break;
-    case 4:
-        return BLUE_COLOR;
-        break;
-    case 5:
-        return GREEN_COLOR;
-        break;
-    case 6:
-        return RED_COLOR;
-        break;
-    case 7:
-        return PURPLE_COLOR;
-        break;
+
     default:
-        return RESET_COLOR;
+        cout << RED_COLOR << "Invalid command!" << endl
+             << "Please enter one of the commands above ..." << RESET_COLOR;
+        Sleep(1500);
+        displayPauseMenu(game);
+        break;
     }
 }
 
-void insertShape(Game game, Shape shape)
+void insertShape(Game game)
 {
+    Shape shape = game.upcomingShapes[0];
     int shapeRow = 0;
     for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
     {
@@ -531,8 +473,9 @@ void insertShape(Game game, Shape shape)
     }
 }
 
-void removeShape(Game game, Shape shape)
+void removeShape(Game game)
 {
+    Shape shape = game.upcomingShapes[0];
     for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
     {
         for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
@@ -543,54 +486,15 @@ void removeShape(Game game, Shape shape)
     }
 }
 
-void copyGameToTemp(Game game, Game temp)
+void popRow(Game &game, int fullRow)
 {
-    for (int i = 0; i < temp.boardLength; i++)
+    bool haveSameColor = true;
+    int lastColor = game.board[fullRow][0].number;
+    for (int j = 3; j < game.boardWidth + 3; j++)
     {
-        for (int j = 0; j < temp.boardWidth; j++)
-        {
-            temp.board[i][j].number = game.board[i][j].number;
-            temp.board[i][j].isMoveable = game.board[i][j].isMoveable;
-        }
-    }
-}
+        if (lastColor != game.board[fullRow][j].number)
+            haveSameColor = false;
 
-void copyTempToBoard(Game game, Game temp)
-{
-    for (int i = 0; i < temp.boardLength; i++)
-    {
-        for (int j = 0; j < temp.boardWidth; j++)
-        {
-            game.board[i][j].number = temp.board[i][j].number;
-
-            if (game.board[i][j].number != 0 && game.board[i][j].isMoveable != false)
-                game.board[i][j].isMoveable = false;
-        }
-    }
-}
-
-void deallocate(Game game)
-{
-    for (int i = 0; i < game.boardLength; i++)
-    {
-        delete[] game.board[i];
-    }
-    delete[] game.board;
-}
-
-void deallocate(Shape shape)
-{
-    for (int i = 0; i < shape.size; i++)
-    {
-        delete[] shape.block[i];
-    }
-    delete[] shape.block;
-}
-
-void popRow(Game game, int fullRow)
-{
-    for (int j = 0; j < game.boardWidth; j++)
-    {
         game.board[fullRow][j].number = 0;
         game.board[fullRow][j].isMoveable = true;
     }
@@ -599,110 +503,67 @@ void popRow(Game game, int fullRow)
     Sleep(200);
     for (int i = fullRow; i > 0; i--)
     {
-        for (int j = 0; j < game.boardWidth; j++)
+        for (int j = 3; j < game.boardWidth + 3; j++)
         {
             swap(game.board[i][j], game.board[i - 1][j]);
+        }
+    }
+
+    if (haveSameColor)
+        game.score += 2 * game.boardWidth;
+    else
+        game.score += game.boardWidth;
+}
+
+void fixBlocks(Game game)
+{
+    for (int i = 0; i < game.boardLength; i++)
+    {
+        for (int j = 3; j < game.boardWidth + 3; j++)
+        {
+            if (game.board[i][j].number != 0 && game.board[i][j].isMoveable != false)
+                game.board[i][j].isMoveable = false;
         }
     }
 }
 
 /*CONTROLS*/
-void checkIfRowIsFull(Game game)
+void moveLeft(Game &game)
 {
-    for (int i = game.boardLength - 1; i >= 0; i--)
+    if (checkLeft(game))
     {
-        bool isFull = true;
-        for (int j = 0; j < game.boardWidth; j++)
-        {
-            if (game.board[i][j].number == 0)
-            {
-                isFull = false;
-                break;
-            }
-        }
-
-        if (isFull)
-        {
-            popRow(game, i);
-            i = game.boardLength - 1;
-        }
+        removeShape(game);
+        game.upcomingShapes[0].positionY--;
+        insertShape(game);
     }
 }
 
-bool checkIfLost(Game game)
+void moveRight(Game &game)
 {
-    for (int j = abs((game.boardWidth - 4) / 2); j < abs((game.boardWidth + 4) / 2); j++)
-        if (game.board[0][j].number != 0)
-            return true;
+    if (checkRight(game))
+    {
+        removeShape(game);
+        game.upcomingShapes[0].positionY++;
+        insertShape(game);
+    }
+}
+
+bool moveDown(Game &game)
+{
+    if (checkDown(game))
+    {
+        removeShape(game);
+        game.upcomingShapes[0].positionX++;
+        insertShape(game);
+        return true;
+    }
 
     return false;
 }
 
-bool checkDown(Game game, Shape shape)
-{
-    for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
-    {
-        for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
-        {
-            if (game.board[i][j].number != 0 && game.board[i][j].isMoveable == true)
-            {
-                if (i + 1 == game.boardLength || game.board[i + 1][j].number != 0 && game.board[i + 1][j].isMoveable == false)
-                    return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool checkLeft(Game game, Shape shape)
-{
-    for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
-    {
-        for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
-        {
-            if (game.board[i][j].number != 0 && game.board[i][j].isMoveable == true)
-            {
-                if (j == 0 || (game.board[i][j - 1].number != 0 && game.board[i][j - 1].isMoveable == false))
-                    return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool checkRight(Game game, Shape shape)
-{
-    for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
-    {
-        for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
-        {
-            if (game.board[i][j].number != 0 && game.board[i][j].isMoveable == true)
-            {
-                if (j + 1 == game.boardWidth || game.board[i][j + 1].number != 0 && game.board[i][j + 1].isMoveable == false)
-                    return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool checkRotation(Game game, Shape shape)
-{
-    for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
-    {
-        for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
-        {
-            if (game.board[i][j].number != 0 && game.board[i][j].isMoveable == false)
-            {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 void rotateShapeClockwise(Shape shape)
 {
+
     for (int i = 0; i < shape.size; i++)
     {
         for (int j = i + 1; j < shape.size; j++)
@@ -738,6 +599,111 @@ void rotateShapeCounterClockwise(Shape shape)
             swap(shape.block[i][j], shape.block[shape.size - 1 - i][j]);
         }
     }
+}
+
+/*GAME RULES*/
+void checkIfRowIsFull(Game &game)
+{
+    for (int i = game.boardLength - 1; i >= 0; i--)
+    {
+        bool isFull = true;
+        for (int j = 3; j < game.boardWidth + 3; j++)
+        {
+            if (game.board[i][j].number == 0)
+            {
+                isFull = false;
+                break;
+            }
+        }
+
+        if (isFull)
+        {
+            popRow(game, i);
+            checkIfRowIsFull(game);
+        }
+    }
+}
+
+bool checkIfLost(Game game)
+{
+    for (int j = abs(3 + (game.boardWidth - 4) / 2); j < abs(3 + (game.boardWidth + 4) / 2); j++)
+        if (game.board[0][j].number != 0)
+            return true;
+
+    return false;
+}
+
+bool checkDown(Game game)
+{
+    Shape shape = game.upcomingShapes[0];
+    for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
+    {
+        for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
+        {
+            if (game.board[i][j].number != 0 && game.board[i][j].isMoveable == true)
+            {
+                if (i + 1 == game.boardLength || game.board[i + 1][j].number != 0 && game.board[i + 1][j].isMoveable == false)
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool checkLeft(Game game)
+{
+    Shape shape = game.upcomingShapes[0];
+
+    for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
+    {
+        for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
+        {
+            if (game.board[i][j].number != 0 && game.board[i][j].isMoveable == true)
+            {
+                if (j == 3 || (game.board[i][j - 1].number != 0 && game.board[i][j - 1].isMoveable == false))
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool checkRight(Game game)
+{
+    Shape shape = game.upcomingShapes[0];
+
+    for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
+    {
+        for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
+        {
+            if (game.board[i][j].number != 0 && game.board[i][j].isMoveable == true)
+            {
+                if (j + 1 == game.boardWidth + 3 || game.board[i][j + 1].number != 0 && game.board[i][j + 1].isMoveable == false)
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool checkRotation(Game game)
+{
+    Shape shape = game.upcomingShapes[0];
+    if (shape.positionY >= 3 && shape.positionY + 2 < game.boardWidth + 3)
+    {
+        for (int i = shape.positionX; i < shape.positionX + shape.size; i++)
+        {
+            for (int j = shape.positionY; j < shape.positionY + shape.size; j++)
+            {
+                if (game.board[i][j].number != 0 && game.board[i][j].isMoveable == false)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    return false;
 }
 
 /*SHAPES*/
@@ -941,13 +907,43 @@ Shape generateShape7()
             shape.block[i][j] = 0;
 
     for (int j = 0; j < shape.size; j++)
-        shape.block[1][j] = 7;
-    shape.block[0][1] = 7;
+        shape.block[2][j] = 7;
+    shape.block[1][1] = 7;
 
     return shape;
 }
 
 /*TERMINAL*/
+string chooseColor(int shapeNumber)
+{
+    switch (shapeNumber)
+    {
+    case 1:
+        return CYAN_COLOR;
+        break;
+    case 2:
+        return YELLOW_COLOR;
+        break;
+    case 3:
+        return WHITE_COLOR;
+        break;
+    case 4:
+        return BLUE_COLOR;
+        break;
+    case 5:
+        return GREEN_COLOR;
+        break;
+    case 6:
+        return RED_COLOR;
+        break;
+    case 7:
+        return PURPLE_COLOR;
+        break;
+    default:
+        return RESET_COLOR;
+    }
+}
+
 void setCursor(int x, int y)
 {
     HANDLE hOut;
@@ -967,4 +963,53 @@ void showConsoleCursor(bool flagStatus)
     GetConsoleCursorInfo(out, &cursorInfo);
     cursorInfo.bVisible = flagStatus;
     SetConsoleCursorInfo(out, &cursorInfo);
+}
+
+void printCharacterByCharacter(string message, int shortSleep, int mediumSleep, int longSleep)
+{
+    for (int i = 0; i < message.length(); i++)
+    {
+        if (kbhit())
+        {
+            getch();
+            for (int j = i; j < message.length(); j++)
+            {
+                if (message[j] != '~' && message[j] != '`')
+                    cout << message[j];
+                else
+                    continue;
+            }
+
+            break;
+        }
+
+        if (message[i] == '~')
+            Sleep(longSleep);
+        else if (message[i] == '`')
+            Sleep(mediumSleep);
+        else
+        {
+            cout << message[i];
+            Sleep(shortSleep);
+        }
+    }
+}
+
+/*SYSTEM*/
+void deallocate(Game game)
+{
+    for (int i = 0; i < game.boardLength + 6; i++)
+    {
+        delete[] game.board[i];
+    }
+    delete[] game.board;
+}
+
+void deallocate(Shape shape)
+{
+    for (int i = 0; i < shape.size; i++)
+    {
+        delete[] shape.block[i];
+    }
+    delete[] shape.block;
 }
