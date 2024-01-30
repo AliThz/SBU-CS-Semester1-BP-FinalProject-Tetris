@@ -1,5 +1,0 @@
-ali - 8 - 2 - 2
-srgt - 18 - 5 - 3
-hamed - 8 - 9 - 7
-sajjad - 9 - 10 - 20
-soroush - 10 - 3 - 1
