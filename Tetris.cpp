@@ -2,7 +2,7 @@
 #include <windows.h> 
 #include <conio.h>   
 #include <ctime>     
-#include <fstream>   
+#include <fstream>  
 #include <iomanip>   
 #include <algorithm> 
 
@@ -160,7 +160,7 @@ int main()
 {
     srand(static_cast<unsigned int>(time(nullptr)));
     showConsoleCursor(false);
-    // PlaySound(TEXT("Tetris2.wav"), NULL, SND_FILENAME | SND_ASYNC);
+    PlaySound(TEXT("Tetris2.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
     displayMenu();
 
     return 0;
@@ -206,7 +206,6 @@ void displayMenu()
         break;
     case '5':
         displayAboutUs(false);
-        // PlaySound(TEXT("Tetris2.wav"), NULL, SND_FILENAME | SND_ASYNC);
         break;
     case '6':
         exitGame();
@@ -1908,6 +1907,7 @@ int sortHelper(const Game &game1, const Game &game2)
 /*HOW TO PLAY*/
 void displayHowToPlay()
 {
+    PlaySound(TEXT("Tetris.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
     system("cls");
     displayTitle("How To Play", GREEN_COLOR, 74);
 
@@ -1925,6 +1925,7 @@ void displayHowToPlay()
     Sleep(500);
     cout << "Press any key to return to menu";
     getch();
+    PlaySound(TEXT("Tetris2.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
     displayMenu();
 }
 
@@ -1933,7 +1934,7 @@ void displayAboutUs(bool willEnd)
 {
     system("cls");
 
-    // PlaySound(TEXT("TVA.wav"), NULL, SND_FILENAME | SND_ASYNC);
+    PlaySound(TEXT("Credits.wav"), NULL, SND_FILENAME | SND_ASYNC);
 
     int n = 0;
     int aboutUs[6][47]{
@@ -1988,6 +1989,7 @@ void displayAboutUs(bool willEnd)
     {
         cout << "\n\n\n\nPress any key to go to the main menu";
         getch();
+        PlaySound(TEXT("Tetris2.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
         displayMenu();
     }
 }
